@@ -7,14 +7,13 @@ app.use(express.json());
 
 let detectedEggs = [];
 
-// Ruta raíz de bienvenida
 app.get('/', (req, res) => {
     res.send("API de Egg Radar funcionando correctamente 🚀");
 });
 
-// 1. Endpoint para recibir reportes de tus bots (POST /report)
+// Endpoint para recibir reportes (POST /report)
 app.post('/report', (req, res) => {
-    const { jobId, placeId, eggName, value } = req.body;
+    const { jobId, placeId, eggName, value, perSecond } = req.body;
 
     if (!jobId || !placeId) {
         return res.status(400).json({ error: "Faltan datos obligatorios" });
@@ -25,10 +24,10 @@ app.post('/report', (req, res) => {
         placeId,
         eggName: eggName || "Huevo Desconocido",
         value: value || 0,
+        perSecond: perSecond || "N/A", // Capturamos lo que da por segundo
         timestamp: Date.now()
     };
 
-    // Reemplazar si el jobId ya existe, o agregarlo
     const existingIndex = detectedEggs.findIndex(item => item.jobId === jobId);
     if (existingIndex !== -1) {
         detectedEggs[existingIndex] = newEntry;
@@ -36,19 +35,17 @@ app.post('/report', (req, res) => {
         detectedEggs.push(newEntry);
     }
 
-    // Ordenar de mayor a menor valor
     detectedEggs.sort((a, b) => b.value - a.value);
 
-    console.log(`[API] Huevo recibido: ${newEntry.eggName} ($${newEntry.value})`);
+    console.log(`[API] Huevo recibido: ${newEntry.eggName} | Da: ${newEntry.perSecond}`);
     res.json({ message: "Reporte guardado con éxito", data: newEntry });
 });
 
-// 2. Endpoint para ver la lista desde tu PC (GET /eggs)
+// Endpoint para ver la lista (GET /eggs)
 app.get('/eggs', (req, res) => {
     const now = Date.now();
-    const TWO_MINUTES = 2 * 60 * 1000; // 2 minutos de expiración
+    const TWO_MINUTES = 2 * 60 * 1000;
 
-    // Filtrar servidores viejos
     detectedEggs = detectedEggs.filter(egg => (now - egg.timestamp) < TWO_MINUTES);
 
     res.json(detectedEggs);
