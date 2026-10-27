@@ -24,28 +24,36 @@ app.post('/report', (req, res) => {
         placeId,
         eggName: eggName || "Huevo Desconocido",
         value: value || 0,
-        perSecond: perSecond || "N/A", // Capturamos lo que da por segundo
+        perSecond: perSecond || "N/A",
         timestamp: Date.now()
     };
 
+    // Evitar duplicados del mismo servidor y actualizar si ya existe
     const existingIndex = detectedEggs.findIndex(item => item.jobId === jobId);
     if (existingIndex !== -1) {
         detectedEggs[existingIndex] = newEntry;
     } else {
-        detectedEggs.push(newEntry);
+        detectedEggs.unshift(newEntry); // Lo pone al principio
     }
 
+    // Mantener solo los últimos 20 servidores reportados para que no sature
+    if (detectedEggs.length > 20) {
+        detectedEggs.pop();
+    }
+
+    // Ordenar de mayor a menor valor
     detectedEggs.sort((a, b) => b.value - a.value);
 
-    console.log(`[API] Huevo recibido: ${newEntry.eggName} | Da: ${newEntry.perSecond}`);
+    console.log(`[API] Servidor guardado: ${newEntry.eggName} | Valor: ${newEntry.value}`);
     res.json({ message: "Reporte guardado con éxito", data: newEntry });
 });
 
 // Endpoint para ver la lista (GET /eggs)
 app.get('/eggs', (req, res) => {
     const now = Date.now();
-    const TWO_MINUTES = 2 * 60 * 1000;
+    const TWO_MINUTES = 2 * 60 * 1000; // 2 minutos de expiración
 
+    // Filtrar solo los que tengan menos de 2 minutos
     detectedEggs = detectedEggs.filter(egg => (now - egg.timestamp) < TWO_MINUTES);
 
     res.json(detectedEggs);
