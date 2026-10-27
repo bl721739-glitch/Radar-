@@ -7,12 +7,12 @@ app.use(express.json());
 
 let detectedEggs = [];
 
-// Ruta de prueba raíz
+// Ruta raíz de bienvenida
 app.get('/', (req, res) => {
     res.send("API de Egg Radar funcionando correctamente 🚀");
 });
 
-// 1. Endpoint para recibir reportes de los bots (POST /report)
+// 1. Endpoint para recibir reportes de tus bots (POST /report)
 app.post('/report', (req, res) => {
     const { jobId, placeId, eggName, value } = req.body;
 
@@ -43,7 +43,7 @@ app.post('/report', (req, res) => {
     res.json({ message: "Reporte guardado con éxito", data: newEntry });
 });
 
-// 2. Endpoint para que tu cuenta principal lea los huevos (GET /eggs)
+// 2. Endpoint para ver la lista desde tu PC (GET /eggs)
 app.get('/eggs', (req, res) => {
     const now = Date.now();
     const TWO_MINUTES = 2 * 60 * 1000; // 2 minutos de expiración
